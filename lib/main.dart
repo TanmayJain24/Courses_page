@@ -1,7 +1,10 @@
 import 'dart:async'; // Importing Timer
 
 import 'package:flutter/material.dart';
+// import 'package:url_launcher/url_launcher.dart';
+import 'package:youtube_player_flutter/youtube_player_flutter.dart';
 
+///////////
 void main() {
   runApp(MyApp());
 }
@@ -29,25 +32,35 @@ class _MyHomePageState extends State<MyHomePage> {
   final PageController _pageController =
       PageController(viewportFraction: 0.9); // PageController
 
-  var certificationProgramImages = [
-    "course3.jpg",
-    "course3.jpg",
-    "course3.jpg",
-    "course3.jpg",
-    "course3.jpg",
-    "course3.jpg",
-    "course3.jpg",
+  var certificationProgramVideos = [
+    "https://www.youtube.com/watch?v=ovKVqo-L2EM",
+    "https://www.youtube.com/watch?v=1IVopxj8q8U",
+    "https://www.youtube.com/watch?v=HVjjoMvutj4",
+    "https://www.youtube.com/watch?v=ZxKM3DCV2kE",
+    "https://www.youtube.com/watch?v=8c6dFc4V5AI",
   ];
 
-  var onlineCoursesImages = [
-    "course2.jpg",
-    "course2.jpg",
-    "course2.jpg",
-    "course2.jpg",
-    "course2.jpg",
-    "course2.jpg",
-    "course2.jpg",
+  var onlineCoursesVideos = [
+    "https://www.youtube.com/watch?v=8c6dFc4V5AI",
+    "https://www.youtube.com/watch?v=ZxKM3DCV2kE",
+    "https://www.youtube.com/watch?v=HVjjoMvutj4",
+    "https://www.youtube.com/watch?v=1IVopxj8q8U",
+    "https://www.youtube.com/watch?v=ovKVqo-L2EM",
   ];
+
+  void enrollCourse(String videoUrl) {
+    setState(() {
+      if (!enrolledCourses.contains(videoUrl)) {
+        enrolledCourses.add(videoUrl);
+      }
+    });
+  }
+
+  List<String> enrolledCourses = [];
+
+  String? getYouTubeVideoId(String url) {
+    return YoutubePlayer.convertUrlToId(url);
+  }
 
   // Timer for auto-page change
   late Timer _timer;
@@ -58,7 +71,7 @@ class _MyHomePageState extends State<MyHomePage> {
     super.initState();
     // Start a timer to change the page every 3 seconds
     _timer = Timer.periodic(Duration(seconds: 3), (timer) {
-      if (_currentPage < certificationProgramImages.length - 1) {
+      if (_currentPage < certificationProgramVideos.length - 1) {
         _currentPage++; // Increment page index
       } else {
         _currentPage = 0; // **Loop back to the first page**
@@ -78,60 +91,99 @@ class _MyHomePageState extends State<MyHomePage> {
     super.dispose();
   }
 
-  void showCoursePopup(BuildContext context, String imagePath) {
+  void showCoursePopup(
+      BuildContext context, String videoUrl, Function enrollCourse) {
+    String videoId =
+        YoutubePlayer.convertUrlToId(videoUrl)!; // Extract video ID
+
+    bool _isPlayerVisible = false; // Initially, the player is hidden
+
     showDialog(
       context: context,
       builder: (context) {
-        return Dialog(
-          backgroundColor: Colors.transparent,
-          insetPadding: EdgeInsets.all(10),
-          child: Stack(
-            children: [
-              Container(
-                width: double.infinity,
-                height: MediaQuery.of(context).size.height * 0.6,
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Column(
-                  children: [
-                    Expanded(
-                      child: ClipRRect(
-                        borderRadius:
-                            BorderRadius.vertical(top: Radius.circular(10)),
-                        child: Image.asset(
-                          "assets/images/$imagePath",
-                          width: double.infinity,
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return Dialog(
+              backgroundColor: Colors.transparent,
+              insetPadding: EdgeInsets.all(10),
+              child: Stack(
+                children: [
+                  Container(
+                    width: double.infinity,
+                    height: MediaQuery.of(context).size.height * 0.6,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Column(
+                      children: [
+                        Expanded(
+                          child: ClipRRect(
+                            borderRadius:
+                                BorderRadius.vertical(top: Radius.circular(10)),
+                            child: _isPlayerVisible
+                                ? YoutubePlayer(
+                                    controller: YoutubePlayerController(
+                                      initialVideoId: videoId,
+                                      flags: YoutubePlayerFlags(
+                                        autoPlay: true,
+                                        mute: false,
+                                      ),
+                                    ),
+                                    showVideoProgressIndicator: true,
+                                  )
+                                : Stack(
+                                    alignment: Alignment.center,
+                                    children: [
+                                      Image.network(
+                                        "https://img.youtube.com/vi/$videoId/maxresdefault.jpg",
+                                        fit: BoxFit.cover,
+                                        width: double.infinity,
+                                      ),
+                                      IconButton(
+                                        icon: Icon(Icons.play_circle_filled,
+                                            color: Colors.white, size: 50),
+                                        onPressed: () {
+                                          setState(() {
+                                            _isPlayerVisible =
+                                                true; // Show video player
+                                          });
+                                        },
+                                      ),
+                                    ],
+                                  ),
+                          ),
                         ),
-                      ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: Column(
-                        children: [
-                          Text(
-                            "Course Details",
-                            style: TextStyle(
-                                fontSize: 20, fontWeight: FontWeight.bold),
+                        Padding(
+                          padding: const EdgeInsets.all(16.0),
+                          child: Column(
+                            children: [
+                              Text(
+                                "Web Development Full Course",
+                                style: TextStyle(
+                                    fontSize: 20, fontWeight: FontWeight.bold),
+                              ),
+                              SizedBox(height: 10),
+                              Text(
+                                  "Watch this video to learn more about the course."),
+                              SizedBox(height: 20),
+                              ElevatedButton(
+                                onPressed: () {
+                                  enrollCourse(videoUrl);
+                                  Navigator.pop(context);
+                                },
+                                child: Text("Enroll Course"),
+                              ),
+                            ],
                           ),
-                          SizedBox(height: 10),
-                          Text("This is a detailed description of the course."),
-                          SizedBox(height: 20),
-                          ElevatedButton(
-                            onPressed: () {
-                              Navigator.pop(context);
-                            },
-                            child: Text("Close"),
-                          ),
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
-            ],
-          ),
+            );
+          },
         );
       },
     );
@@ -159,6 +211,10 @@ class _MyHomePageState extends State<MyHomePage> {
                   ],
                 ),
               ),
+
+              // ✅ **Enrolled Courses Section**
+              // **Enrolled Courses Section (Styled like other sections)**
+
               ElevatedButton(
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Color(0xFF0A66C2),
@@ -168,6 +224,90 @@ class _MyHomePageState extends State<MyHomePage> {
               SizedBox(
                 height: 40,
               ),
+
+              if (enrolledCourses.isNotEmpty)
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.only(left: 8.0, top: 20),
+                      child: Text(
+                        "Enrolled Courses",
+                        style: TextStyle(
+                            fontSize: 18, fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                    Container(
+                      color: Colors.grey.shade300,
+                      margin: EdgeInsets.all(3.0),
+                      padding: EdgeInsets.all(5.0),
+                      height: 170, // Same height as other sections
+                      width: double.infinity,
+                      child: ListView.builder(
+                        scrollDirection: Axis.horizontal,
+                        itemCount: enrolledCourses.length,
+                        itemExtent: 200,
+                        itemBuilder: (context, index) {
+                          String videoId = YoutubePlayer.convertUrlToId(
+                              enrolledCourses[index])!;
+                          return Column(
+                            children: [
+                              GestureDetector(
+                                onTap: () {
+                                  showCoursePopup(context,
+                                      enrolledCourses[index], enrollCourse);
+                                },
+                                child: Stack(
+                                  alignment: Alignment.center,
+                                  children: [
+                                    Image.network(
+                                      "https://img.youtube.com/vi/$videoId/maxresdefault.jpg",
+                                      fit: BoxFit.cover,
+                                      height: 100,
+                                      width: 190,
+                                      errorBuilder:
+                                          (context, error, stackTrace) {
+                                        return Icon(Icons.error,
+                                            color: Colors.red);
+                                      },
+                                    ),
+                                    Icon(
+                                      Icons.play_circle_filled,
+                                      color: Colors.white,
+                                      size: 50,
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              SizedBox(height: 5),
+                              Text(
+                                "Web Development Full Course",
+                                style: TextStyle(
+                                    fontSize: 14, fontWeight: FontWeight.bold),
+                              ),
+                              SizedBox(height: 5),
+                              ElevatedButton(
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Color(0xFF0A66C2),
+                                ),
+                                onPressed: () {
+                                  showCoursePopup(context,
+                                      enrolledCourses[index], enrollCourse);
+                                },
+                                child: Text("Watch Now"),
+                              ),
+                            ],
+                          );
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+
+              SizedBox(
+                height: 40,
+              ),
+
               Column(
                 mainAxisAlignment: MainAxisAlignment.start,
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -187,41 +327,68 @@ class _MyHomePageState extends State<MyHomePage> {
                     color: Colors.grey.shade300,
                     margin: EdgeInsets.all(3.0),
                     padding: EdgeInsets.all(5.0),
-                    height: 160, // Ensures ListView has a defined height
+                    height: 170, // Increased height to fit title and button
                     width: double.infinity,
                     child: ListView.builder(
                       itemBuilder: (context, index) {
-                        return Container(
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Padding(
-                                padding: const EdgeInsets.symmetric(
-                                    vertical: 1.0), // Reduce padding
-                                child: SizedBox(
-                                  height: 100,
-                                  width: 190,
-                                  child: Image.asset(
-                                    "assets/images/${certificationProgramImages[index]}",
+                        String? videoId = getYouTubeVideoId(
+                            certificationProgramVideos[index]);
+                        if (videoId == null)
+                          return SizedBox(); // Skip if video ID is invalid
+
+                        return Column(
+                          children: [
+                            GestureDetector(
+                              onTap: () {
+                                showCoursePopup(
+                                    context,
+                                    certificationProgramVideos[index],
+                                    enrollCourse);
+                              },
+                              child: Stack(
+                                alignment: Alignment.center,
+                                children: [
+                                  Image.network(
+                                    "https://img.youtube.com/vi/$videoId/maxresdefault.jpg",
                                     fit: BoxFit.cover,
+                                    height: 100,
+                                    width: 190,
+                                    errorBuilder: (context, error, stackTrace) {
+                                      return Icon(Icons.error,
+                                          color: Colors.red);
+                                    },
                                   ),
-                                ),
+                                  Icon(
+                                    Icons.play_circle_filled,
+                                    color: Colors.white,
+                                    size: 50,
+                                  ),
+                                ],
                               ),
-                              Text("Course Name"),
-                              ElevatedButton(
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: Color(0xFF0A66C2),
-                                  ),
-                                  onPressed: () {
-                                    showCoursePopup(context,
-                                        certificationProgramImages[index]);
-                                  },
-                                  child: Text("Get Now"))
-                            ],
-                          ),
+                            ),
+                            SizedBox(height: 5),
+                            Text(
+                              "Web Development Full Course",
+                              style: TextStyle(
+                                  fontSize: 14, fontWeight: FontWeight.bold),
+                            ),
+                            SizedBox(height: 5),
+                            ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Color(0xFF0A66C2),
+                              ),
+                              onPressed: () {
+                                showCoursePopup(
+                                    context,
+                                    certificationProgramVideos[index],
+                                    enrollCourse);
+                              },
+                              child: Text("Enroll Now"),
+                            ),
+                          ],
                         );
                       },
-                      itemCount: certificationProgramImages.length,
+                      itemCount: certificationProgramVideos.length,
                       scrollDirection: Axis.horizontal,
                       itemExtent: 200,
                     ),
@@ -248,45 +415,74 @@ class _MyHomePageState extends State<MyHomePage> {
                         color: Colors.grey.shade300,
                         margin: EdgeInsets.all(3.0),
                         padding: EdgeInsets.all(5.0),
-                        height: 160, // Ensures ListView has a defined height
+                        height: 170, // Increased height to fit title and button
                         width: double.infinity,
                         child: ListView.builder(
                           itemBuilder: (context, index) {
-                            return Container(
-                              child: Column(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Padding(
-                                    padding: const EdgeInsets.symmetric(
-                                        vertical: 1.0), // Reduce padding
-                                    child: SizedBox(
-                                      height: 100,
-                                      width: 190,
-                                      child: Image.asset(
-                                        "assets/images/${onlineCoursesImages[index]}",
+                            String? videoId =
+                                getYouTubeVideoId(onlineCoursesVideos[index]);
+                            if (videoId == null)
+                              return SizedBox(); // Skip if video ID is invalid
+
+                            return Column(
+                              children: [
+                                GestureDetector(
+                                  onTap: () {
+                                    showCoursePopup(
+                                        context,
+                                        onlineCoursesVideos[index],
+                                        enrollCourse);
+                                  },
+                                  child: Stack(
+                                    alignment: Alignment.center,
+                                    children: [
+                                      Image.network(
+                                        "https://img.youtube.com/vi/$videoId/maxresdefault.jpg",
                                         fit: BoxFit.cover,
+                                        height: 100,
+                                        width: 190,
+                                        errorBuilder:
+                                            (context, error, stackTrace) {
+                                          return Icon(Icons.error,
+                                              color: Colors.red);
+                                        },
                                       ),
-                                    ),
+                                      Icon(
+                                        Icons.play_circle_filled,
+                                        color: Colors.white,
+                                        size: 50,
+                                      ),
+                                    ],
                                   ),
-                                  Text("Course Name"),
-                                  ElevatedButton(
-                                      style: ElevatedButton.styleFrom(
-                                        backgroundColor: Color(0xFF0A66C2),
-                                      ),
-                                      onPressed: () {
-                                        showCoursePopup(context,
-                                            onlineCoursesImages[index]);
-                                      },
-                                      child: Text("Get Now"))
-                                ],
-                              ),
+                                ),
+                                SizedBox(height: 5),
+                                Text(
+                                  "Web Development Full Course",
+                                  style: TextStyle(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.bold),
+                                ),
+                                SizedBox(height: 5),
+                                ElevatedButton(
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Color(0xFF0A66C2),
+                                  ),
+                                  onPressed: () {
+                                    showCoursePopup(
+                                        context,
+                                        onlineCoursesVideos[index],
+                                        enrollCourse);
+                                  },
+                                  child: Text("Enroll Now"),
+                                ),
+                              ],
                             );
                           },
-                          itemCount: onlineCoursesImages.length,
+                          itemCount: onlineCoursesVideos.length,
                           scrollDirection: Axis.horizontal,
                           itemExtent: 200,
                         ),
-                      )
+                      ),
                     ],
                   )
                 ],
