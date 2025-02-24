@@ -116,6 +116,7 @@ class _MyHomePageState extends State<MyHomePage> {
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: Column(
+                      mainAxisSize: MainAxisSize.min,
                       children: [
                         Expanded(
                           child: ClipRRect(
@@ -157,6 +158,7 @@ class _MyHomePageState extends State<MyHomePage> {
                         Padding(
                           padding: const EdgeInsets.all(16.0),
                           child: Column(
+                            mainAxisSize: MainAxisSize.min,
                             children: [
                               Text(
                                 "Web Development Full Course",
@@ -198,10 +200,11 @@ class _MyHomePageState extends State<MyHomePage> {
         ),
         body: SingleChildScrollView(
           child: Column(
+            mainAxisSize: MainAxisSize.min,
             children: [
               SizedBox(
                 height: MediaQuery.of(context).size.height *
-                    0.5, // Half screen height
+                    0.35, // Half screen height
                 child: PageView(
                   controller: _pageController, // Using the PageController
                   children: [
@@ -222,11 +225,12 @@ class _MyHomePageState extends State<MyHomePage> {
                   onPressed: () {},
                   child: Text("Enrolled Courses")),
               SizedBox(
-                height: 40,
+                height: 0,
               ),
 
               if (enrolledCourses.isNotEmpty)
                 Column(
+                  mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Padding(
@@ -251,6 +255,7 @@ class _MyHomePageState extends State<MyHomePage> {
                           String videoId = YoutubePlayer.convertUrlToId(
                               enrolledCourses[index])!;
                           return Column(
+                            mainAxisSize: MainAxisSize.min,
                             children: [
                               GestureDetector(
                                 onTap: () {
@@ -305,7 +310,7 @@ class _MyHomePageState extends State<MyHomePage> {
                 ),
 
               SizedBox(
-                height: 40,
+                height: 20,
               ),
 
               Column(
@@ -337,6 +342,7 @@ class _MyHomePageState extends State<MyHomePage> {
                           return SizedBox(); // Skip if video ID is invalid
 
                         return Column(
+                          mainAxisSize: MainAxisSize.min,
                           children: [
                             GestureDetector(
                               onTap: () {
@@ -394,7 +400,7 @@ class _MyHomePageState extends State<MyHomePage> {
                     ),
                   ),
                   SizedBox(
-                    height: 40,
+                    height: 20,
                   ),
                   Column(
                     mainAxisAlignment: MainAxisAlignment.start,
@@ -425,6 +431,7 @@ class _MyHomePageState extends State<MyHomePage> {
                               return SizedBox(); // Skip if video ID is invalid
 
                             return Column(
+                              mainAxisSize: MainAxisSize.min,
                               children: [
                                 GestureDetector(
                                   onTap: () {
